@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ConsoleBinanseWS": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
