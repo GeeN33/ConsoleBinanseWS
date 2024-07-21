@@ -3,6 +3,7 @@ version: '3.4'
 services:
   consolebinansews:
     image: ${DOCKER_REGISTRY-}consolebinansews
+    restart: always
     build:
       context: .
       dockerfile: ConsoleBinanseWS/Dockerfile
