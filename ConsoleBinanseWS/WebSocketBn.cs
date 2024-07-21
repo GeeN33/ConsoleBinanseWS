@@ -64,7 +64,7 @@ namespace ConsoleBinanseWS
     
             sortrdIndex();
 
-            if (debug) servicRequest.UpLogger("logger", $"Start {symbolInfo.Symbol}", symbolInfo.Symbol);
+            //if (debug) servicRequest.UpLogger("logger", $"Start {symbolInfo.Symbol}", symbolInfo.Symbol);
 
             //string Request = $"wss://fstream.binance.com/stream?streams={symbol.ToLower()}@miniTicker";
 

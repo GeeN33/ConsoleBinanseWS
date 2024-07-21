@@ -35,7 +35,7 @@ void RUNS()
     {
         WebSocketBn socketBn = new WebSocketBn(item, config);
         Threadlists.Add(new Thread(socketBn.Start));
-        Console.WriteLine($"Start {item.Symbol}");
+        if(config.Debug) Console.WriteLine($"Start {item.Symbol}");
     }
 
     foreach (var thd in Threadlists)
