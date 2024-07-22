@@ -33,9 +33,12 @@ void RUNS()
 
     foreach (var item in symbolsInfos)
     {
-        WebSocketBn socketBn = new WebSocketBn(item, config);
-        Threadlists.Add(new Thread(socketBn.Start));
-        if(config.Debug) Console.WriteLine($"Start {item.Symbol}");
+        if (item.Status == "TRADING")
+        {
+            WebSocketBn socketBn = new WebSocketBn(item, config);
+            Threadlists.Add(new Thread(socketBn.Start));
+            if (config.Debug) Console.WriteLine($"Start {item.Symbol}");
+        }
     }
 
     foreach (var thd in Threadlists)
@@ -67,7 +70,7 @@ void SetTimer()
 void OnTimedEvent(Object source, ElapsedEventArgs e)
 {
 
-    DateTime dateTime = e.SignalTime;
+    DateTime dateTime = GetNowMSK();
 
     int hour = dateTime.Hour;
 
@@ -107,4 +110,19 @@ static void OnExit(object sender, ConsoleCancelEventArgs args)
     ServiceEvent.STOP();
     // Завершаем выполнение
     Environment.Exit(0);
+}
+
+
+
+DateTime GetNowMSK()
+{
+    DateTime utcTime = DateTime.UtcNow;
+
+    // Получаем информацию о часовом поясе MSK
+    TimeZoneInfo moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+
+    // Преобразуем время к московскому времени
+    DateTime moscowTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, moscowTimeZone);
+
+    return moscowTime;
 }
