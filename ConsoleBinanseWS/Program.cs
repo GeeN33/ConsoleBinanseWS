@@ -61,7 +61,7 @@ await Task.Delay(-1);
 void SetTimer()
 {
     // Create a timer with a two second interval.
-    aTimer = new System.Timers.Timer(60000);
+    aTimer = new System.Timers.Timer(300000);
     // Hook up the Elapsed event for the timer. 
     aTimer.Elapsed += OnTimedEvent;
     aTimer.AutoReset = true;
