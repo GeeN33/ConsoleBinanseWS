@@ -7,7 +7,6 @@ using System.Timers;
 using DotNetEnv;
 
 
-// Загрузить переменные окружения из файла .env
 Env.Load();
 
 System.Timers.Timer aTimer;
@@ -25,6 +24,8 @@ ServicRequest servicRequest = new ServicRequest(config.UrlInfo);
 SymbolInfo symbolInfo = new SymbolInfo();
 
 var symbolsInfos = servicRequest.GetSymbolInfo($"f-binance/group/{config.IdGroup}/?format=json");
+
+servicRequest.UpLogger("f-binance/update-log/", "Start", $"Start Group {config.IdGroup}");
 
 List<Thread> Threadlists = new List<Thread>();
 
@@ -60,7 +61,7 @@ await Task.Delay(-1);
 void SetTimer()
 {
     // Create a timer with a two second interval.
-    aTimer = new System.Timers.Timer(300000);
+    aTimer = new System.Timers.Timer(60000);
     // Hook up the Elapsed event for the timer. 
     aTimer.Elapsed += OnTimedEvent;
     aTimer.AutoReset = true;
@@ -69,27 +70,28 @@ void SetTimer()
 
 void OnTimedEvent(Object source, ElapsedEventArgs e)
 {
-
     DateTime dateTime = GetNowMSK();
 
     int hour = dateTime.Hour;
-
-    if (watchConnection.CurrentHour && watchConnection.TargetHour.Contains(hour))
+   
+    if (watchConnection.Go && watchConnection.TargetHour.Contains(hour))
     {
+
         servicRequest.UpLogger("f-binance/update-log/", "ReConnection", $"ReConnection hour {hour}");
-       
+
         foreach (var item in symbolsInfos)
         {
             ServiceEvent.ReConnection(item.Id);
             Thread.Sleep(300);
         }
 
-        watchConnection.CurrentHour = false;
+        watchConnection.Go = false;
+
     }
     
-    if (!watchConnection.TargetHour.Contains(hour) && !watchConnection.CurrentHour)
+    if (!watchConnection.TargetHour.Contains(hour) && !watchConnection.Go)
     {
-        watchConnection.CurrentHour = true;
+        watchConnection.Go = true;
     }
 
     foreach (var item in symbolsInfos)
@@ -111,8 +113,6 @@ static void OnExit(object sender, ConsoleCancelEventArgs args)
     // Завершаем выполнение
     Environment.Exit(0);
 }
-
-
 
 DateTime GetNowMSK()
 {
