@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using WebSocketSharp;
@@ -18,6 +19,8 @@ public class WebSocketBn
     WebSocket ws_tick;
 
     ServicRequest servicRequest;
+
+    Rabbit_MQ rabbit;
 
     double last = 0;
 
@@ -49,9 +52,10 @@ public class WebSocketBn
     bool debug = true;
     Config config;
 
-    public WebSocketBn(Symbolscl _symbolinfo, Config config)
+    public WebSocketBn(Symbolscl _symbolinfo, Config _config, Rabbit_MQ _rabbit)
     {
-        this.config = config;
+        this.rabbit = _rabbit;
+        this.config = _config;
         this.symbolInfo = _symbolinfo;
 
         debug = config.Debug;
@@ -73,6 +77,13 @@ public class WebSocketBn
         string Request = $"wss://fstream.binance.com/ws/{symbolInfo.Symbol.ToLower()}@aggTrade";
 
         ws_tick = new WebSocket(Request);
+
+        if (config.Proxy_active && config.proxy != null)
+        {
+            var pxy = config.proxy;
+
+            ws_tick.SetProxy($"http://{pxy.Ip}:{pxy.Port}", pxy.Login, pxy.Password);
+        }
 
         ws_tick.OnMessage += Up_tick;
 
@@ -161,7 +172,17 @@ public class WebSocketBn
                 watchConnection.UpTikNot++;
 
                 string log = $"ERROR id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, UpTikNot = {watchConnection.UpTikNot}";
-                servicRequest.UpLogger("logger", "ERROR Connection", log);
+
+                Log logg = new Log { Type = "ERROR", Content = log };
+
+                rabbit.send_Command(new CommandFromClient
+                {
+                    Id = id,
+                    Type = "Logg",
+                    Logg = logg
+                });
+
+                //servicRequest.UpLogger("logger", "ERROR Connection", log);
             }
             else
             {
@@ -278,21 +299,20 @@ public class WebSocketBn
 
         barCoin5.Datetime = dateTime;
 
-        var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin5);
+        // var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin5);
 
-        if(res == true)
+        rabbit.send_Command(new CommandFromClient
         {
-            barCoin5.ZeroBarCoin(last);
-            deltaBuy5 = 0;
-            deltaSell5 = 0;
-            if(debug) Console.WriteLine($"per = 5, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent5 = {indexCurrent5}");
-        }
-        else
-        {
-            string log = $"ERROR per = 5, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent5 = {indexCurrent5}";
-            servicRequest.UpLogger("logger", "ERROR", log);
-            if (debug) Console.WriteLine(log);
-        }
+            Id = id,
+            Type = "BarCoin",
+            Barcoin = barCoin5,
+        });
+
+        barCoin5.ZeroBarCoin(last);
+        deltaBuy5 = 0;
+        deltaSell5 = 0;
+        if(debug) Console.WriteLine($"per = 5, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent5 = {indexCurrent5}");
+        
 
         if (indexCurrent5 >= indexMax5)
         {
@@ -320,24 +340,22 @@ public class WebSocketBn
 
             barCoin60.Datetime = dateTime;
 
-            var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin60);
+            // var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin60);
 
-            if (res == true)
+            rabbit.send_Command(new CommandFromClient
             {
-                barCoin60.ZeroBarCoin(last);
-                deltaBuy60 = 0;
-                deltaSell60 = 0;
-                if (debug) Console.WriteLine($"per = 60, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent60 = {indexCurrent60}, indexCurrentSub60 = {indexCurrentSub60}");
-            }
-            else
-            {
-                string log = $"ERROR per = 60, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent60 = {indexCurrent60}, indexCurrentSub60 = {indexCurrentSub60}";
+                Id = id,
+                Type = "BarCoin",
+                Barcoin = barCoin60,
+            });
 
-                servicRequest.UpLogger("logger", "ERROR", log);
-
-                if (debug) Console.WriteLine(log);
-            }
-
+           
+            barCoin60.ZeroBarCoin(last);
+            deltaBuy60 = 0;
+            deltaSell60 = 0;
+            if (debug) Console.WriteLine($"per = 60, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent60 = {indexCurrent60}, indexCurrentSub60 = {indexCurrentSub60}");
+            
+  
             if (indexCurrent60 >= indexMax60)
             {
                 indexCurrent60 = indexMin60;

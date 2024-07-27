@@ -17,6 +17,10 @@ config.LoadConfig();
 
 WatchConnection watchConnection = new WatchConnection();
 
+Rabbit_MQ rabbit = new Rabbit_MQ(config.Rabbit_MQ_IP, config.Rabbit_MQ_Queue, config.UserName, config.Password);
+
+rabbit.evenClose += Rabbit_evenClose;
+
 Console.CancelKeyPress += new ConsoleCancelEventHandler(OnExit);
 
 ServicRequest servicRequest = new ServicRequest(config.UrlInfo);
@@ -25,20 +29,46 @@ SymbolInfo symbolInfo = new SymbolInfo();
 
 var symbolsInfos = servicRequest.GetSymbolInfo($"{config.UrlInfoEndpoint}{config.IdGroup}/?format=json");
 
-servicRequest.UpLogger($"{config.UrlInfoLog}", "Start", $"Start Group {config.IdGroup}");
 
 List<Thread> Threadlists = new List<Thread>();
 
 void RUNS()
 {
+    rabbit.start();
+
+    StartInfo();
 
     foreach (var item in symbolsInfos.Symbols)
     {
         if (item.Status == "TRADING")
         {
-            WebSocketBn socketBn = new WebSocketBn(item, config);
+            WebSocketBn socketBn = new WebSocketBn(item, config, rabbit);
             Threadlists.Add(new Thread(socketBn.Start));
             if (config.Debug) Console.WriteLine($"Start {item.Symbol}");
+        }
+    }
+
+    foreach (var thd in Threadlists)
+    {
+        thd.Start();
+        Thread.Sleep(500);
+    }
+
+}
+
+void RUNS_spot()
+{
+    rabbit.start();
+
+    StartInfo();
+
+    foreach (var item in symbolsInfos.Symbols)
+    {
+        if (item.Status == "TRADING")
+        {
+            WebSocketBnSpot socketBn = new WebSocketBnSpot(item, config, rabbit);
+            Threadlists.Add(new Thread(socketBn.Start));
+            if (config.Debug) Console.WriteLine($"Start {item.Symbol} spot");
         }
     }
 
@@ -53,7 +83,17 @@ void RUNS()
 await Task.Run(() =>
 {
     SetTimer();
-    RUNS();
+
+    if (config.Spot)
+    {
+        RUNS_spot();
+    }
+    else
+    {
+        RUNS();
+    }
+
+    
 });
 
 await Task.Delay(-1);
@@ -70,6 +110,8 @@ void SetTimer()
 
 void OnTimedEvent(Object source, ElapsedEventArgs e)
 {
+    rabbit.CheckConnect();
+
     DateTime dateTime = GetNowMSK();
 
     int hour = dateTime.Hour;
@@ -77,7 +119,17 @@ void OnTimedEvent(Object source, ElapsedEventArgs e)
     if (watchConnection.Go && watchConnection.TargetHour.Contains(hour))
     {
 
-        servicRequest.UpLogger("f-binance/update-log/", "ReConnection", $"ReConnection hour {hour}");
+        string log = $"ReConnection hour {hour}";
+
+        Log logg = new Log { Type = "ReConnection", Content = log };
+
+        rabbit.send_Command(new CommandFromClient
+        {
+            Id = 0,
+            Type = "Logg",
+            Logg = logg
+        });
+
 
         foreach (var item in symbolsInfos.Symbols)
         {
@@ -97,7 +149,7 @@ void OnTimedEvent(Object source, ElapsedEventArgs e)
     foreach (var item in symbolsInfos.Symbols)
     {
         ServiceEvent.Timed(dateTime, item.Id);
-        Thread.Sleep(600);
+        Thread.Sleep(100);
     }
 
 }
@@ -125,4 +177,31 @@ DateTime GetNowMSK()
     DateTime moscowTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, moscowTimeZone);
 
     return moscowTime;
+}
+
+void Rabbit_evenClose()
+{
+    // Выполняем завершающие действия
+    Console.WriteLine("Программа закрывается...");
+    rabbit.close();
+    ServiceEvent.STOP();
+    // Завершаем выполнение
+    Environment.Exit(0);
+}
+
+void StartInfo()
+{
+    string log = $"Start Group {config.IdGroup}, queue - {config.Rabbit_MQ_Queue}";
+
+    Log logg = new Log { Type = "Start", Content = log };
+
+    rabbit.send_Command(new CommandFromClient
+    {
+        Id = 0,
+        Type = "Logg",
+        Logg = logg
+    });
+
+
+
 }

@@ -25,6 +25,10 @@ namespace ConsoleBinanseWS.lib
         public string UrlBarCreateEndpoint { get; set; } = "";
 
         public string UrlBarGetInfoEndpoint { get; set; } = "";
+        public string Rabbit_MQ_IP { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Rabbit_MQ_Queue { get; set; } = "";
 
         public int IdGroup { get; set; } = 3;
        
@@ -48,6 +52,12 @@ namespace ConsoleBinanseWS.lib
                 string UrlBar = Environment.GetEnvironmentVariable("UrlBar");
                 string UrlBarCreateEndpoint = Environment.GetEnvironmentVariable("UrlBarCreateEndpoint");
                 string UrlBarGetInfoEndpoint = Environment.GetEnvironmentVariable("UrlBarGetInfoEndpoint");
+
+                string Rabbit_MQ_IP = Environment.GetEnvironmentVariable("Rabbit_MQ_IP");
+                string UserName = Environment.GetEnvironmentVariable("UserName");
+                string Password = Environment.GetEnvironmentVariable("Password");
+                string Rabbit_MQ_Queue = Environment.GetEnvironmentVariable("Rabbit_MQ_Queue");
+
                 string IdGroup = Environment.GetEnvironmentVariable("IdGroup");
                 string Debug = Environment.GetEnvironmentVariable("Debug");
                 string Spot = Environment.GetEnvironmentVariable("Spot");
@@ -59,6 +69,12 @@ namespace ConsoleBinanseWS.lib
                 this.UrlBar = UrlBar;
                 this.UrlBarCreateEndpoint = UrlBarCreateEndpoint;
                 this.UrlBarGetInfoEndpoint = UrlBarGetInfoEndpoint;
+
+                this.Rabbit_MQ_IP = Rabbit_MQ_IP;
+                this.UserName = UserName;
+                this.Password = Password;
+                this.Rabbit_MQ_Queue = Rabbit_MQ_Queue;
+
                 this.IdGroup = Convert.ToInt32(IdGroup);
 
                
