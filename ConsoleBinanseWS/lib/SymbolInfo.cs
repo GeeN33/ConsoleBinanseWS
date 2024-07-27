@@ -9,15 +9,15 @@ namespace ConsoleBinanseWS.lib;
 
 public class SymbolInfo
 {
-    public Infobodi symbol;
-
-}
-
-public class Infobodi
-{
     public int Id { get; set; }
+    
     public List<Symbolscl> Symbols { get; set; }
+    
     public string Name { get; set; }
+
+    public Proxy proxy { get; set; }
+
+    public bool Proxy_active { get; set; } = false;
 
 }
 
@@ -67,4 +67,14 @@ public class Filters
     public string MultiplierDown { get; set; }
     public string MultiplierDecimal { get; set; }
 
+}
+
+public class Proxy
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Ip { get; set; }
+    public int Port { get; set; }
+    public string Login { get; set; }
+    public string Password { get; set; }
 }

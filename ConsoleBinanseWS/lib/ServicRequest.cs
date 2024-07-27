@@ -17,13 +17,13 @@ namespace ConsoleBinanseWS.lib
             client = new RestClient(endpoint_base);
         }
 
-        public List<Symbolscl> GetSymbolInfo(string endpoint)
+        public SymbolInfo GetSymbolInfo(string endpoint)
         {
             var request = new RestRequest(endpoint);
 
-            var response2 = client.Get<Infobodi>(request);
+            var response2 = client.Get<SymbolInfo>(request);
 
-            return response2.Symbols;
+            return response2;
 
         }
 

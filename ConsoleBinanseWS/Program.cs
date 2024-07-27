@@ -23,16 +23,16 @@ ServicRequest servicRequest = new ServicRequest(config.UrlInfo);
 
 SymbolInfo symbolInfo = new SymbolInfo();
 
-var symbolsInfos = servicRequest.GetSymbolInfo($"f-binance/group/{config.IdGroup}/?format=json");
+var symbolsInfos = servicRequest.GetSymbolInfo($"{config.UrlInfoEndpoint}{config.IdGroup}/?format=json");
 
-servicRequest.UpLogger("f-binance/update-log/", "Start", $"Start Group {config.IdGroup}");
+servicRequest.UpLogger($"{config.UrlInfoLog}", "Start", $"Start Group {config.IdGroup}");
 
 List<Thread> Threadlists = new List<Thread>();
 
 void RUNS()
 {
 
-    foreach (var item in symbolsInfos)
+    foreach (var item in symbolsInfos.Symbols)
     {
         if (item.Status == "TRADING")
         {
@@ -61,7 +61,7 @@ await Task.Delay(-1);
 void SetTimer()
 {
     // Create a timer with a two second interval.
-    aTimer = new System.Timers.Timer(300000);
+    aTimer = new System.Timers.Timer(30000);
     // Hook up the Elapsed event for the timer. 
     aTimer.Elapsed += OnTimedEvent;
     aTimer.AutoReset = true;
@@ -79,7 +79,7 @@ void OnTimedEvent(Object source, ElapsedEventArgs e)
 
         servicRequest.UpLogger("f-binance/update-log/", "ReConnection", $"ReConnection hour {hour}");
 
-        foreach (var item in symbolsInfos)
+        foreach (var item in symbolsInfos.Symbols)
         {
             ServiceEvent.ReConnection(item.Id);
             Thread.Sleep(300);
@@ -94,7 +94,7 @@ void OnTimedEvent(Object source, ElapsedEventArgs e)
         watchConnection.Go = true;
     }
 
-    foreach (var item in symbolsInfos)
+    foreach (var item in symbolsInfos.Symbols)
     {
         ServiceEvent.Timed(dateTime, item.Id);
         Thread.Sleep(600);

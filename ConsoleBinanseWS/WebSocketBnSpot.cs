@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using WebSocketSharp;
 namespace ConsoleBinanseWS;
 
 
-public class WebSocketBn
+public class WebSocketBnSpot
 {
     WatchConnection watchConnection = new WatchConnection();
 
@@ -47,22 +46,20 @@ public class WebSocketBn
     int indexMin60 = 0;
     int indexCurrentSub60 = 1;
     bool debug = true;
-    Config config;
 
-    public WebSocketBn(Symbolscl _symbolinfo, Config config)
+    public WebSocketBnSpot(Symbolscl _symbolinfo, Config config)
     {
-        this.config = config;
         this.symbolInfo = _symbolinfo;
 
         debug = config.Debug;
 
         servicRequest = new ServicRequest(config.UrlBar);
 
-        barCoinLopped5 = servicRequest.GetBarCoinLopped5(config.UrlBarGetInfoEndpoint, symbolInfo.Symbol);
+        barCoinLopped5 = servicRequest.GetBarCoinLopped5("info-coin/", symbolInfo.Symbol);
 
         Thread.Sleep(100);
 
-        barCoinLopped60 = servicRequest.GetBarCoinLopped60(config.UrlBarGetInfoEndpoint, symbolInfo.Symbol);
+        barCoinLopped60 = servicRequest.GetBarCoinLopped60("info-coin/", symbolInfo.Symbol);
 
         sortrdIndex();
 
@@ -108,23 +105,23 @@ public class WebSocketBn
         //var tradeId = data?["a"].ToString(); // ID сделки
         var lastprice = Convert.ToDouble(data?["p"].ToString()); // Цена
         var quantity = Convert.ToDouble(data?["q"].ToString()); // Количество
-        //var firstTradeId = data?["f"].ToString(); // Первый ID сделки
-        //var lastTradeId = data?["l"].ToString(); // Последний ID сделки
-        //var tradeTime = data?["T"].ToString(); // Время сделки
-        //var isBuyerMaker = data?["m"].ToString(); // Является ли покупатель мейкером
+                                                                //var firstTradeId = data?["f"].ToString(); // Первый ID сделки
+                                                                //var lastTradeId = data?["l"].ToString(); // Последний ID сделки
+                                                                //var tradeTime = data?["T"].ToString(); // Время сделки
+                                                                //var isBuyerMaker = data?["m"].ToString(); // Является ли покупатель мейкером
 
-       
+
         if (lastprice > last)
         {
-            side =  "buy";
+            side = "buy";
         }
-        
+
         if (lastprice < last)
         {
             side = "sell";
         }
 
-       
+
         last = lastprice;
 
 
@@ -153,7 +150,7 @@ public class WebSocketBn
     {
         if (symbolInfo.Id == id && symbolInfo.Status == "TRADING")
         {
-           
+
             if (!watchConnection.CurrentUpTik && watchConnection.UpTikNot < 3)
             {
                 Re_Socket_tick();
@@ -278,14 +275,14 @@ public class WebSocketBn
 
         barCoin5.Datetime = dateTime;
 
-        var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin5);
+        var res = servicRequest.UpBarCoin("symbols", id, barCoin5);
 
-        if(res == true)
+        if (res == true)
         {
             barCoin5.ZeroBarCoin(last);
             deltaBuy5 = 0;
             deltaSell5 = 0;
-            if(debug) Console.WriteLine($"per = 5, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent5 = {indexCurrent5}");
+            if (debug) Console.WriteLine($"per = 5, id = {id}, {symbolInfo.Symbol} dateTime {dateTime}, indexCurrent5 = {indexCurrent5}");
         }
         else
         {
@@ -298,14 +295,16 @@ public class WebSocketBn
         {
             indexCurrent5 = indexMin5;
 
-        } else {
+        }
+        else
+        {
             indexCurrent5++;
-        } 
+        }
     }
 
     void upBar60(DateTime dateTime)
     {
-        if(indexCurrentSub60 >= 12)
+        if (indexCurrentSub60 >= 12)
         {
             int id = 0;
 
@@ -320,7 +319,7 @@ public class WebSocketBn
 
             barCoin60.Datetime = dateTime;
 
-            var res = servicRequest.UpBarCoin(config.UrlBarCreateEndpoint, id, barCoin60);
+            var res = servicRequest.UpBarCoin("symbols", id, barCoin60);
 
             if (res == true)
             {
