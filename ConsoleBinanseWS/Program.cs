@@ -118,8 +118,14 @@ void OnTimedEvent(Object source, ElapsedEventArgs e)
    
     if (watchConnection.Go && watchConnection.TargetHour.Contains(hour))
     {
+        string sf = "futures";
+        
+        if (config.Spot)
+        {
+            sf = "spot";
+        }
 
-        string log = $"ReConnection hour {hour}";
+        string log = $"{dateTime} ReConnection hour {hour}, {sf}, Group {config.IdGroup}";
 
         Log logg = new Log { Type = "ReConnection", Content = log };
 
@@ -166,19 +172,6 @@ static void OnExit(object sender, ConsoleCancelEventArgs args)
     Environment.Exit(0);
 }
 
-DateTime GetNowMSK()
-{
-    DateTime utcTime = DateTime.UtcNow;
-
-    // Получаем информацию о часовом поясе MSK
-    TimeZoneInfo moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
-
-    // Преобразуем время к московскому времени
-    DateTime moscowTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, moscowTimeZone);
-
-    return moscowTime;
-}
-
 void Rabbit_evenClose()
 {
     // Выполняем завершающие действия
@@ -191,7 +184,9 @@ void Rabbit_evenClose()
 
 void StartInfo()
 {
-    string log = $"Start Group {config.IdGroup}, queue - {config.Rabbit_MQ_Queue}";
+    DateTime dateTime = GetNowMSK();
+
+    string log = $"{dateTime} Start Group {config.IdGroup}, queue - {config.Rabbit_MQ_Queue}";
 
     Log logg = new Log { Type = "Start", Content = log };
 
@@ -204,4 +199,17 @@ void StartInfo()
 
 
 
+}
+
+DateTime GetNowMSK()
+{
+    DateTime utcTime = DateTime.UtcNow;
+
+    // Получаем информацию о часовом поясе MSK
+    TimeZoneInfo moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+
+    // Преобразуем время к московскому времени
+    DateTime moscowTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, moscowTimeZone);
+
+    return moscowTime;
 }
