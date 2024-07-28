@@ -186,7 +186,7 @@ void StartInfo()
 {
     DateTime dateTime = GetNowMSK();
 
-    string log = $"{dateTime} Start Group {config.IdGroup}, queue - {config.Rabbit_MQ_Queue}";
+    string log = $"{dateTime.ToString()} Start Group {config.IdGroup.ToString()}, queue - {config.Rabbit_MQ_Queue}";
 
     Log logg = new Log { Type = "Start", Content = log };
 
